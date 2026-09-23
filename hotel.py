@@ -3,17 +3,18 @@ from bs4 import BeautifulSoup
 import json
 import os
 
-# LINE Notify
+# LINE Notify token（GitHub Secrets から読み取る）
 LINE_NOTIFY_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
 
-# 楽天トラベルURL
+# 楽天トラベルURL（GitHub Secrets）
 RAKUTEN_URL = os.environ["RAKUTEN_URL"]
 
-# じゃらんURL
+# じゃらんURL（GitHub Secrets）
 JALAN_URL = os.environ["JALAN_URL"]
 
 
 def send_line(message):
+    """LINE Notifyでメッセージ送信"""
     url = "https://notify-api.line.me/api/notify"
     headers = {
         "Authorization": f"Bearer {LINE_NOTIFY_TOKEN}"
@@ -65,16 +66,19 @@ def main():
 
     message = ""
 
+    # 楽天トラベル値下がりチェック
     if rakuten_price:
         if last["rakuten"] is None or rakuten_price < last["rakuten"]:
             message += f"楽天トラベル値下がり！\n現在価格: ￥{rakuten_price:,}\n{RAKUTEN_URL}\n"
         last["rakuten"] = rakuten_price
 
+    # じゃらん値下がりチェック
     if jalan_price:
         if last["jalan"] is None or jalan_price < last["jalan"]:
             message += f"じゃらん値下がり！\n現在価格: ￥{jalan_price:,}\n{JALAN_URL}\n"
         last["jalan"] = jalan_price
 
+    # 値下がりがあれば通知
     if message:
         send_line(message)
 
@@ -83,4 +87,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-]
