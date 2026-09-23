@@ -6,7 +6,7 @@ LINE_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 USER_ID = os.getenv("LINE_USER_ID")
 RAKUTEN_URL = os.getenv("RAKUTEN_URL")
 JALAN_URL = os.getenv("JALAN_URL")
-TEST_MODE = os.getenv("TEST_MODE")  # "true" or "false"
+TEST_MODE = os.getenv("TEST_MODE")  # workflow_dispatch の入力値
 
 def push_message(text):
     url = "https://api.line.me/v2/bot/message/push"
@@ -25,11 +25,12 @@ def push_message(text):
 def get_price(url):
     res = requests.get(url)
     soup = BeautifulSoup(res.text, "html.parser")
-    price = soup.find("span", class_="price")  # 必要なら調整
+    price = soup.find("span", class_="price")
     return price.text if price else "価格が取得できませんでした"
 
 # --- テスト配信モード ---
-if TEST_MODE == "true":
+# false 以外なら全部テスト扱いにする
+if TEST_MODE and TEST_MODE.lower() != "false":
     push_message("テスト配信：GitHub Actions から正常に送信できました！")
     exit()
 
