@@ -1,0 +1,34 @@
+name: Hotel Price Monitor
+
+on:
+  schedule:
+    - cron: "0 12 * * 1-5"   # 平日21時（JST）
+    - cron: "0 23 * * 5"     # 土曜8時（JST）
+    - cron: "0 23 * * 6"     # 日曜8時（JST）
+    - cron: "0 11 * * 6"     # 土曜20時（JST）
+    - cron: "0 11 * * 0"     # 日曜20時（JST）
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run hotel price monitor
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          RAKUTEN_URL: ${{ secrets.RAKUTEN_URL }}
+          JALAN_URL: ${{ secrets.JALAN_URL }}
+        run: python hotel.py
