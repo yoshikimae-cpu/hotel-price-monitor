@@ -2,16 +2,20 @@ name: Hotel Price Monitor
 
 on:
   schedule:
-    - cron: "0 12 * * 1-5"   # 平日21時（JST）
-    - cron: "0 23 * * 5"     # 土曜8時（JST）
-    - cron: "0 23 * * 6"     # 日曜8時（JST）
-    - cron: "0 11 * * 6"     # 土曜20時（JST）
-    - cron: "0 11 * * 0"     # 日曜20時（JST）
+    - cron: "0 12 * * 1-5"
+    - cron: "0 23 * * 5"
+    - cron: "0 23 * * 6"
+    - cron: "0 11 * * 6"
+    - cron: "0 11 * * 0"
   workflow_dispatch:
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: hotel-price-monitor   # ← これを追加！
 
     steps:
       - name: Checkout repository
