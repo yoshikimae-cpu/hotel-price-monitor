@@ -1,89 +1,41 @@
+import os
 import requests
 from bs4 import BeautifulSoup
-import json
-import os
 
-# Messaging API のチャネルアクセストークン
-LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
+LINE_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+USER_ID = os.getenv("LINE_USER_ID")
+RAKUTEN_URL = os.getenv("RAKUTEN_URL")
+JALAN_URL = os.getenv("JALAN_URL")
+TEST_MODE = os.getenv("TEST_MODE")  # "true" or "false"
 
-# 正しい userId（Uxxxxxxxxxxxx）
-LINE_USER_ID = os.environ["LINE_USER_ID"]
-
-RAKUTEN_URL = os.environ["RAKUTEN_URL"]
-JALAN_URL = os.environ["JALAN_URL"]
-
-
-def send_line(message):
+def push_message(text):
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {LINE_CHANNEL_ACCESS_TOKEN}"
+        "Authorization": f"Bearer {LINE_TOKEN}"
     }
-    data = {
-        "to": LINE_USER_ID,
+    body = {
+        "to": USER_ID,
         "messages": [
-            {"type": "text", "text": message}
+            {"type": "text", "text": text}
         ]
     }
-    requests.post(url, headers=headers, json=data)
+    requests.post(url, headers=headers, json=body)
 
+def get_price(url):
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, "html.parser")
+    price = soup.find("span", class_="price")  # 必要なら調整
+    return price.text if price else "価格が取得できませんでした"
 
-def get_price_rakuten():
-    r = requests.get(RAKUTEN_URL)
-    soup = BeautifulSoup(r.text, "html.parser")
-    price_tag = soup.select_one(".price")
-    if price_tag:
-        price = price_tag.text.replace("円", "").replace(",", "")
-        return int(price)
-    return None
+# --- テスト配信モード ---
+if TEST_MODE == "true":
+    push_message("テスト配信：GitHub Actions から正常に送信できました！")
+    exit()
 
+# --- 通常処理 ---
+rakuten_price = get_price(RAKUTEN_URL)
+jalan_price = get_price(JALAN_URL)
 
-def get_price_jalan():
-    r = requests.get(JALAN_URL)
-    soup = BeautifulSoup(r.text, "html.parser")
-    price_tag = soup.select_one(".price")
-    if price_tag:
-        price = price_tag.text.replace("円", "").replace(",", "")
-        return int(price)
-    return None
-
-
-def load_last_price():
-    try:
-        with open("hotel_price.json", "r") as f:
-            return json.load(f)
-    except:
-        return {"rakuten": None, "jalan": None}
-
-
-def save_price(data):
-    with open("hotel_price.json", "w") as f:
-        json.dump(data, f)
-
-
-def main():
-    last = load_last_price()
-
-    rakuten_price = get_price_rakuten()
-    jalan_price = get_price_jalan()
-
-    message = ""
-
-    if rakuten_price:
-        if last["rakuten"] is None or rakuten_price < last["rakuten"]:
-            message += f"楽天トラベル値下がり！\n現在価格: ￥{rakuten_price:,}\n{RAKUTEN_URL}\n"
-        last["rakuten"] = rakuten_price
-
-    if jalan_price:
-        if last["jalan"] is None or jalan_price < last["jalan"]:
-            message += f"じゃらん値下がり！\n現在価格: ￥{jalan_price:,}\n{JALAN_URL}\n"
-        last["jalan"] = jalan_price
-
-    if message:
-        send_line(message)
-
-    save_price(last)
-
-
-if __name__ == "__main__":
-    main()
+message = f"楽天: {rakuten_price}\nじゃらん: {jalan_price}"
+push_message(message)
