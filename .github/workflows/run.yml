@@ -15,7 +15,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: hotel-price-monitor   # ← これが超重要！
+        working-directory: hotel-price-monitor
 
     steps:
       - name: Checkout repository
@@ -26,8 +26,10 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install dependencies manually
+        run: |
+          pip install requests
+          pip install beautifulsoup4
 
       - name: Run hotel price monitor
         env:
