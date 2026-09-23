@@ -13,10 +13,6 @@ jobs:
   run-script:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: hotel-price-monitor
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
