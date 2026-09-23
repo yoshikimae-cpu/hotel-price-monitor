@@ -15,7 +15,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: hotel-price-monitor   # ← これを追加！
+        working-directory: hotel-price-monitor   # ← これが超重要！
 
     steps:
       - name: Checkout repository
